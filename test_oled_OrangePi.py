@@ -25,7 +25,7 @@ button_vup  = port.PA18  #PIN 18
 button_vdown = port.PA19 #PIN 16
 button_pause = port.PA13 #PIN 24
 
-#-----------------------------------------------------------#
+#---------------------------------------------------------------------------#
 #def setGPIO():#set the input GPIO for buttons
 
 gpio.setcfg(button_prev, gpio.INPUT)
@@ -44,14 +44,14 @@ gpio.pullup(button_vup,  gpio.PULLUP)
 gpio.pullup(button_vdown, gpio.PULLUP)
 gpio.pullup(button_pause,  gpio.PULLUP)
 
-#------------------------------------------------------------#
-#-------------------------------------------------------------#
+#------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 # Define Device Type , I2C port and padding characters
 device = sh1106(port=0, address=0x3C)  # rev.1 users set port=0
 font = ImageFont.load_default()
 str_pad = " " * 24
 
-#------------------------------------------------------------#  
+#------------------------------------------------------------------------------#  
 def read_switches():#Reading the switch for inputs 
 
   sw_prev = 1
@@ -107,9 +107,25 @@ def read_switches():#Reading the switch for inputs
 
     sleep(0.4)
   
-#------------------------------------------------------------------#
+#----------------------------------------------------------------------------------#
+#----------------------------------------------------------------------------------#        
+def stream_station():# Reading MPC process status to capture data to show on screen
+        process1 = subprocess.Popen('mpc current', shell=True, stdout=subprocess.PIPE)
+        status1 = process1.communicate()[0]
+        Stream_station = str_pad + status1
+        return Stream_station
 
-#-----------------------------------------------------------------#
+#----------------------------------------------------------------------------------#
+def get_volume():        
+        process2 = subprocess.Popen('mpc volume', shell=True, stdout=subprocess.PIPE)
+        Volume_Status = process2.communicate()[0]
+        return (Stream_station , Volme_status)
+     
+         
+#------------------------------------------------------------------------------------#        
+               
+
+#------------------------------------------------------------------------------------#
 def run_cmd(cmd):#execute the shell command
   p = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
   output = p.communicate()[0]
@@ -117,48 +133,53 @@ def run_cmd(cmd):#execute the shell command
 
       
 
-#-----------------------------------------------------------------#        
+#------------------------------------------------------------------------------------#        
                
 def scroll_line1(title1, key_press):# String title is to be scrolled on OLED display  
         for i in range (0, len(title1)):
                 lcd_text1 = title1[i:(i+23)]
                 key_press = read_switches()
                 if key_press != None:
-                    print(key_press)
+                    print(key_press)#-----just for debugging purposes----------------#
                     Radio()
                 with canvas(device) as draw:
                           draw.text((0, 0), lcd_text1, font=font, fill=255)
                           time.sleep(0.1)  
 
-#---------------------------------------------------------------#   
-#---------------------------------------------------------------#        
+#------------------------------------------------------------------------------------#   
+#------------------------------------------------------------------------------------#        
                
 def display_line2(title2):# String title is to be scrolled on OLED display  
           with canvas(device) as draw:
               draw.text((0, 20), title2, font=font, fill=255)
                
-#------------------------------------------------------------#            
+#------------------------------------------------------------------------------------#            
 
-#-------------reading switches-------------------------------#
+#-------------reading switches-------------------------------------------------------#
 def Radio():
     while 1:
         #time.sleep(0.4)
+        LCD_Line1 = stream_station()
+        LCD_Line2 = get_volume()
         
         key_value = read_switches()
        
-        print(key_value)
+        print(key_value) #--Just for debugging ----#
         if key_value == None:
             time.sleep(0.2)
             #break
-            LCD_Line1 = "*************" 
+            display_line2(LCD_Line2)
             scroll_line1(str_pad+LCD_Line1, key_value)
+            
            
         if key_value == 4:
             time.sleep(0.2)
-            LCD_Line1 = "PROGRAM HAVE BEEN BROKEN" 
+            run_cmd("mpc volume +5")
+            LCD_Line2 = get_volume()
+            display_line2(LCD_Line2)
             scroll_line1(str_pad+LCD_Line1, key_value)
     #time.sleep(0.4)
-#----------Program flow starts from here onwards-------------#
+#----------Program flow starts from here onwards-------------------------------------#
     
        
 
