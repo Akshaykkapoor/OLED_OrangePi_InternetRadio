@@ -116,13 +116,26 @@ def stream_station():# Reading MPC process status to capture data to show on scr
         return Stream_station
 
 #----------------------------------------------------------------------------------#
-def get_volume():        
+def get_volume(): # Reading MPC process status to capture data to show on screen       
         process2 = subprocess.Popen('mpc volume', shell=True, stdout=subprocess.PIPE)
         Volume_Status = process2.communicate()[0]
-        return (Stream_station , Volme_status)
+        return (Volume_Status)
      
          
-#------------------------------------------------------------------------------------#        
+#------------------------------------------------------------------------------------# 
+
+#----------------------------------------------------------------------------------#        
+def playing_status():# Reading MPC process status to capture data to show on screen
+        process1 = subprocess.Popen('mpc', shell=True, stdout=subprocess.PIPE)
+        status1 = process1.communicate()[0]
+        statusLines = status1.split('\n')
+      # Extract the songName (first line)
+        #songN = statusLines[0]
+        #listN = statusLines[1]
+        Playing_status = statusLines[1]
+        return Playing_status
+
+#----------------------------------------------------------------------------------#       
                
 
 #------------------------------------------------------------------------------------#
@@ -135,7 +148,7 @@ def run_cmd(cmd):#execute the shell command
 
 #------------------------------------------------------------------------------------#        
                
-def scroll_line1(title1, key_press):# String title is to be scrolled on OLED display  
+def scroll_line1(title1,title2, title3,key_press):# String title is to be scrolled on OLED display  
         for i in range (0, len(title1)):
                 lcd_text1 = title1[i:(i+23)]
                 key_press = read_switches()
@@ -144,6 +157,8 @@ def scroll_line1(title1, key_press):# String title is to be scrolled on OLED dis
                     Radio()
                 with canvas(device) as draw:
                           draw.text((0, 0), lcd_text1, font=font, fill=255)
+                          draw.text((0, 20), title2, font=font, fill=255)
+                          draw.text((0, 30), title3, font=font, fill=255)
                           time.sleep(0.1)  
 
 #------------------------------------------------------------------------------------#   
@@ -161,6 +176,8 @@ def Radio():
         #time.sleep(0.4)
         LCD_Line1 = stream_station()
         LCD_Line2 = get_volume()
+        status = playing_status()
+        LCD_Line3 = status[:10]
         
         key_value = read_switches()
        
@@ -168,17 +185,51 @@ def Radio():
         if key_value == None:
             time.sleep(0.2)
             #break
-            display_line2(LCD_Line2)
-            scroll_line1(str_pad+LCD_Line1, key_value)
+            #display_line2(LCD_Line2)
+            scroll_line1(LCD_Line1,LCD_Line2,LCD_Line3, key_value)
             
            
         if key_value == 4:
             time.sleep(0.2)
             run_cmd("mpc volume +5")
             LCD_Line2 = get_volume()
-            display_line2(LCD_Line2)
-            scroll_line1(str_pad+LCD_Line1, key_value)
+            #display_line2(LCD_Line2)
+            scroll_line1(LCD_Line1,LCD_Line2,LCD_Line3, key_value)
+            
+        if key_value == 5:
+            time.sleep(0.2)
+            run_cmd("mpc volume -5")
+            LCD_Line2 = get_volume()
+            #display_line2(LCD_Line2)
+            scroll_line1(LCD_Line1,LCD_Line2,LCD_Line3, key_value)
+            
+        if key_value == 6:
+            time.sleep(0.2)
+            run_cmd("mpc toggle")
+            #LCD_Line2 = get_volume()
+            #display_line2(LCD_Line2)
+            status = playing_status()
+            LCD_Line3 = status[:10]
+            #split_status = staus[:3]
+            #print(status[:10])#---------------just for testing purposes -----#
+            #time.sleep(10)
+            scroll_line1(LCD_Line1,LCD_Line2,LCD_Line3, key_value)
+            
+        if key_value == 2:
+            time.sleep(0.2)
+            run_cmd("mpc next")
+            LCD_Line1 = stream_station()
+            #display_line2(LCD_Line2)
+            scroll_line1(LCD_Line1,LCD_Line2,LCD_Line3, key_value)
+            
+        if key_value == 1:
+            time.sleep(0.2)
+            run_cmd("mpc prev")
+            LCD_Line1 = stream_station()
+            #display_line2(LCD_Line2)
+            scroll_line1(LCD_Line1,LCD_Line2,LCD_Line3, key_value)               
     #time.sleep(0.4)
+#------------------------------------------------------------------------------------#
 #----------Program flow starts from here onwards-------------------------------------#
     
        
